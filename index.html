@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="icon" href="Imagenes/building.png" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.7.1/dist/ml5.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="js/artyom.window.js"></script>
+
+    <title>Proyecto</title>
+    <script src="/Scripts.js" defer></script>
+</head>
+
+
+<style>
+    body,
+    html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .image-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 250px;
+    }
+
+    .title {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 40px;
+        color: #5c3226;
+        font-weight: bold;
+        align-items: center;
+    }
+
+    .LetraTermostato {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 20px;
+        color: #5c3226;
+        font-weight: bold;
+        align-items: center;
+    }
+</style>
+
+
+<body style="background-image: url('Imagenes/Construccion.jpg'); background-size: cover; background-repeat: no-repeat;">
+
+    <div id="Menu" class="container border border-start rounded p-2 mb-2"
+        style="background: rgb(149, 112, 88); width: 350px; height: 415px;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <div class="image-container">
+                        <img src="Imagenes/building.png" style="width: 180px; height: 144px;">
+                    </div>
+                    <th class="title" colspan="6">Tecno Planner</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="d-grid gap-2 col-20  mx-auto">
+                            <button id="detectionAction" class="Texto-Boton" onclick="toggleDetecting()"
+                                style="background: rgb(186, 140, 109); width: 300px; height: 50px;"
+                                type="button">Activar Deteccion De La Camara</button>
+                            <button id="button" class="Ocultar" disabled
+                                style="background: rgb(186, 140, 109); width: 300px; height: 50px;" type="button">Entrar
+                                Al Plano De La Casa</button>
+                            <div id="Termostato" class="Ocultar">
+                                <div id="ContainerTermostato" class="thermostat" style="width: 300px; height: 120px;">
+                                    <h2 class="LetraTermostato">Termostato</h2>
+                                    <div class="temperature-display">
+                                        <span id="Temperatura">20</span> °C
+                                    </div>
+                                    <div class="controls">
+                                        <button onclick="AumentarTemperatura()">+</button>
+                                        <button onclick="DisminuirTemperatura()">-</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <div class="row-3">
+            <div class>
+
+                <div class="PlanoInicial">
+                    <img id="Imagen1" src="Imagenes/FondoPrincipal.jpg" alt="imagen">
+                </div>
+                <div id="red-overlay" class="overlay"></div>
+                <div id="yellow-overlay" class="overlay"></div>
+
+                <!-- Microfono y Botones -->
+                <script>
+
+                    let ActivarAudio = document.getElementById("button");
+
+                    var artyom = new Artyom();
+
+                    artyom.initialize({
+                        lang: "es-ES"
+                    });
+
+                    function iniciarArtyom() {
+
+                        if (ActivarAudio.innerText == 'Desactivar Comandos De Voz') {
+                            artyom.initialize({
+                                lang: "es-ES",
+                                debug: true,
+                                listen: true,
+                                continuous: true,
+                                speed: 0.9,
+                                mode: "normal"
+                            });
+                        } else {
+                            artyom.fatality();
+                        }
+
+                    }
+
+                    artyom.redirectRecognizedTextOutput(function (recognized, isFinal) {
+                        if (isFinal) {
+                            console.log("Texto final reconocido: " + recognized);
+                        } else {
+                            console.log(recognized);
+                        }
+                    });
+
+                    ActivarAudio.addEventListener("click", function ComprobarEstado() {
+                        if (ActivarAudio.innerText == 'Entrar Al Plano De La Casa') {
+                            var a = document.getElementById('Menu');
+                            a.style.height = "605px";
+                            ActivarAudio.innerText = 'Activar Comandos De Voz';
+                            detectButtonPress();
+                        } else if (ActivarAudio.innerText == 'Activar Comandos De Voz' && SwelActivo == false) {
+                            artyom.say("Comandos de voz Activados")
+                            ActivarAudio.innerText = 'Desactivar Comandos De Voz';
+                            iniciarArtyom();
+                        } else if (ActivarAudio.innerText == 'Desactivar Comandos De Voz' && SwelActivo == false) {
+                            artyom.say("Comandos de voz Desactivados")
+                            ActivarAudio.innerText = 'Activar Comandos De Voz';
+                            iniciarArtyom();
+                        }
+                    });
+                </script>
+                <!-- Audio -->
+
+                <audio id="AbrirPuerta">
+                    <source src="Imagenes/Audio/Puerta Abriendose.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="CerrarPuerta">
+                    <source src="Imagenes/Audio/Puerta Cerrandose.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="AbrirPuertaCorrediza">
+                    <source src="Imagenes/Audio/Puerta Corrediza A.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="CerrarPuertaCorrediza">
+                    <source src="Imagenes/Audio/Puerta Corrediza C.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="AbrirUnaVentana">
+                    <source src="Imagenes/Audio/Ventana Abriendose.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="CerrarUnaVentana">
+                    <source src="Imagenes/Audio/Ventana Cerrandose.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="InterruptorDeLuz">
+                    <source src="Imagenes/Audio/Interruptor De Luz .mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="PuertaBloqueada">
+                    <source src="Imagenes/Audio/Puerta Bloqueada.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="VentanaBloqueada">
+                    <source src="Imagenes/Audio/Ventana Bloqueada.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="AlarmaIncendios">
+                    <source src="Imagenes/Audio/Alarma Contra Incendios.mpeg" type="audio/mpeg">
+                </audio>
+
+                <audio id="EstufaPrendida">
+                    <source src="Imagenes/Audio/EstufaPrendida.mp4" type="audio/mpeg">
+                </audio>
+
+                <audio id="EstufaApagada">
+                    <source src="Imagenes/Audio/EstufaApagada.mp4" type="audio/mpeg">
+                </audio>
+
+                <!-- Botones Principales -->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="CambiarAPatio" type="button" class="btn btn-outline-dark">Entrar Al Patio</button>
+                    <button id="CambiarABaño" type="button" class="btn btn-outline-dark">Entrar Al Baño</button>
+                    <button id="CambiarACocina" type="button" class="btn btn-outline-dark">Entrar A la Cocina</button>
+                    <button id="CambiarAH1" type="button" class="btn btn-outline-dark">Entrar Al Cuarto 1</button>
+                    <button id="CambiarAH2" type="button" class="btn btn-outline-dark">Entrar Al Cuarto 2</button>
+                    <button id="CambiarAH3" type="button" class="btn btn-outline-dark">Entrar Al Cuarto 3</button>
+                </div>
+
+                <!-- Configuraciones -->
+                <div class="btn">
+                    <button id="Configuraciones" type="button" class="btn btn-outline-dark"
+                        style="background: rgb(186, 140, 109)">Configuraciones</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="BloquearPuertas" type="button" class="btn btn-outline-dark">Bloquear Puertas</button>
+                    <button id="DesbloquearPuertas" type="button" class="btn btn-outline-dark">Desbloquear
+                        Puertas</button>
+                    <button id="DesactivarLuz" type="button" class="btn btn-outline-dark">Desactivar Luz</button>
+                    <button id="ActivarLuz" type="button" class="btn btn-outline-dark">Activar Luz</button>
+                    <button id="BloquearVentanas" type="button" class="btn btn-outline-dark">Bloquear Ventanas</button>
+                    <button id="DesbloquearVentanas" type="button" class="btn btn-outline-dark">Desbloquear
+                        Ventanas</button>
+                    <button id="VolverAInicioConfi" type="button" class="btn btn-outline-dark">Salir De
+                        Configuraciones</button>
+                </div>
+
+                <!-- Botones De El Patio -->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="EncenderLuzPatio" type="button" class="btn btn-outline-dark">Encender Luz Patio</button>
+                    <button id="ApagarLuzPatio" type="button" class="btn btn-outline-dark">Apagar Luz Patio</button>
+                    <button id="VolverAInicioP" type="button" class="btn btn-outline-dark">Salir Al Menu</button>
+                </div>
+
+
+                <!-- Botones Del Baño -->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="EncenderLuzBaño" type="button" class="btn btn-outline-dark">Encender Luz Baño</button>
+                    <button id="ApagarLuzBaño" type="button" class="btn btn-outline-dark">Apagar Luz Baño</button>
+                    <button id="AbrirVentanaB" type="button" class="btn btn-outline-dark">Abrir Ventana Baño</button>
+                    <button id="CerrarVentanaB" type="button" class="btn btn-outline-dark">Cerrar Ventana Baño</button>
+                    <button id="VolverAInicioB" type="button" class="btn btn-outline-dark">Salir Al Menu</button>
+                </div>
+
+
+                <!-- Botones De La Cocina -->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="EncenderLuzCocina" type="button" class="btn btn-outline-dark">Encender Luz Cocina</button>
+                    <button id="ApagarLuzCocina" type="button" class="btn btn-outline-dark">Apagar Luz Cocina</button>
+                    <button id="EncenderEstufa" type="button" class="btn btn-outline-dark">Encender Estufa</button>
+                    <button id="ApagarEstufa" type="button" class="btn btn-outline-dark">Apagar Estufa</button>
+                    <button id="VolverAInicioC" type="button" class="btn btn-outline-dark">Salir Al Menu</button>
+                </div>
+
+
+                <!-- Botones De La Habitacion 1-->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="EncenderLuzH1" type="button" class="btn btn-outline-dark">Encender Luz Cuarto 1</button>
+                    <button id="ApagarLuzH1" type="button" class="btn btn-outline-dark">Apagar Luz Cuarto 1</button>
+                    <button id="AbrirVentanaH1" type="button" class="btn btn-outline-dark">Abrir Ventana Cuarto
+                        1</button>
+                    <button id="CerrarVentanaH1" type="button" class="btn btn-outline-dark">Cerrar Ventana Cuarto
+                        1</button>
+                    <button id="VolverAInicioH1" type="button" class="btn btn-outline-dark">Salir Al Menu</button>
+                </div>
+
+
+                <!-- Botones De La Habitacion 2-->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="EncenderLuzH2" type="button" class="btn btn-outline-dark">Encender Luz Cuarto 2</button>
+                    <button id="ApagarLuzH2" type="button" class="btn btn-outline-dark">Apagar Luz Cuarto 2</button>
+                    <button id="AbrirVentanaH2" type="button" class="btn btn-outline-dark">Abrir Ventana Cuarto
+                        2</button>
+                    <button id="CerrarVentanaH2" type="button" class="btn btn-outline-dark">Cerrar Ventana Cuarto
+                        2</button>
+                    <button id="BañoH2E" type="button" class="btn btn-outline-dark">Entrar Al Cuarto De Baño</button>
+                    <button id="EncenderLuzBañoH2" type="button" class="btn btn-outline-dark">Encender Luz Del Cuarto De
+                        Baño</button>
+                    <button id="ApagarLuzBañoH2" type="button" class="btn btn-outline-dark">Apagar Luz Del Cuarto De
+                        Baño</button>
+                    <button id="BañoH2S" type="button" class="btn btn-outline-dark">Salir Del Cuarto De Baño</button>
+                    <button id="VolverAInicioH2" type="button" class="btn btn-outline-dark">Salir Al Menu</button>
+                </div>
+
+
+                <!-- Botones De La Habitacion 3-->
+                <div class="btn-group" role="group" aria-label="Basic outlined example"
+                    style="background: rgb(186, 140, 109)">
+                    <button id="EncenderLuzH3" type="button" class="btn btn-outline-dark">Encender Luz Cuarto 3</button>
+                    <button id="ApagarLuzH3" type="button" class="btn btn-outline-dark">Apagar Luz Cuarto 3</button>
+                    <button id="AbrirVentanaH3" type="button" class="btn btn-outline-dark">Abrir Ventana Cuarto
+                        3</button>
+                    <button id="CerrarVentanaH3" type="button" class="btn btn-outline-dark">Cerrar Ventana Cuarto
+                        3</button>
+                    <button id="VolverAInicioH3" type="button" class="btn btn-outline-dark">Salir Al Menu</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script src="Scripts.js"></script>
+    <script src="js/cdn.jsdelivr.net_npm_sweetalert2@11.7.12_dist_sweetalert2.all.min.js"></script>
+</body>
+
+</html>

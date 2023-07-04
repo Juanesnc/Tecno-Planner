@@ -1,0 +1,50 @@
+canvas {
+  border: 1px solid black;
+}
+
+.overlay {
+  position: absolute;
+  top: 216px;
+  left: 200;
+}
+
+#red-overlay {
+  background-color: rgba(248, 64, 64, 0.378);
+  z-index: 1;
+}
+
+#yellow-overlay {
+  background-color: rgba(251, 251, 58, 0.273);
+  z-index: 2;
+}
+
+.thermostat {
+  width: 200px;
+  padding: 10px;
+  background-color: rgb(186, 140, 109);
+  text-align: center;
+}
+
+.thermostat h2 {
+  margin: 5px;
+}
+
+.temperature-display {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.controls button {
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+}
+
+.Ocultar {
+  display: none;
+}
+
+.Color-swal-container{
+  background-color: rgb(221, 213, 207);
+}
